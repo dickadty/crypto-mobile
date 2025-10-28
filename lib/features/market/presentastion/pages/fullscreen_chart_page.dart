@@ -1,9 +1,8 @@
-import 'package:crypto_mvp_getx/features/market/presentastion/controllers/market_controller.dart';
-import 'package:crypto_mvp_getx/features/market/presentastion/widgets/chandles_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-
+import '../controllers/market_controller.dart';
+import '../widgets/chandles_chart.dart';
 
 class FullscreenChartPage extends GetView<MarketController> {
   const FullscreenChartPage({super.key});
@@ -21,7 +20,6 @@ class FullscreenChartPage extends GetView<MarketController> {
             tooltip: 'Reset zoom',
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              // cara simpel reset: reload candle (tanpa ubah interval)
               final slug = controller.selected.value;
               if (slug != null) {
                 controller.changeInterval(controller.selectedInterval.value);
@@ -35,7 +33,6 @@ class FullscreenChartPage extends GetView<MarketController> {
         if (data.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
-        // Perbesar area chart (tanpa card)
         return Padding(
           padding: const EdgeInsets.all(12.0),
           child: CandlesChart(
@@ -44,13 +41,12 @@ class FullscreenChartPage extends GetView<MarketController> {
             gridColor: const Color(0xFF20304D),
             bullColor: const Color(0xFF10B981),
             bearColor: const Color(0xFFF87171),
-            // Bisa custom behavior untuk fullscreen
             zoomPanBehavior: ZoomPanBehavior(
               enablePinching: true,
               enablePanning: true,
               enableDoubleTapZooming: true,
               zoomMode: ZoomMode.x,
-              maximumZoomLevel: 0.05, // lebih dekat
+              maximumZoomLevel: 0.05,
               enableMouseWheelZooming: true,
               enableSelectionZooming: true,
             ),

@@ -1,9 +1,9 @@
 class AssetInfo {
-  final String slug; // id/slug, ex: "bitcoin"
+  final String slug; // ex: "bitcoin" (id)
   final String symbol; // ex: "BTC"
   final String name; // ex: "Bitcoin"
-  final double? marketCapUsd; // bisa null jika dari list tanpa detail
-  final double? volumeUsd24Hr; // bisa null jika dari list tanpa detail
+  final double? marketCapUsd;
+  final double? volumeUsd24Hr;
 
   const AssetInfo({
     required this.slug,
@@ -13,31 +13,28 @@ class AssetInfo {
     this.volumeUsd24Hr,
   });
 
-  /// Parsing fleksibel: bisa {data:{...}} atau langsung {...}
   factory AssetInfo.fromJson(dynamic json) {
-    final Map<String, dynamic> m =
+    final Map<String, dynamic> root =
         (json is Map<String, dynamic> && json['data'] is Map<String, dynamic>)
-        ? (json['data'] as Map<String, dynamic>)
-        : (json as Map<String, dynamic>);
+            ? (json['data'] as Map<String, dynamic>)
+            : (json as Map<String, dynamic>);
 
-    double? _d(x) => x == null
-        ? null
-        : (x is num ? x.toDouble() : double.tryParse(x.toString()));
+    double? _d(x) =>
+        x == null ? null : (x is num ? x.toDouble() : double.tryParse('$x'));
 
-    final id = (m['id'] ?? m['slug'] ?? '').toString();
-    final sym = (m['symbol'] ?? '').toString();
-    final nm = (m['name'] ?? '').toString();
+    final id = (root['id'] ?? root['slug'] ?? '').toString();
+    final sym = (root['symbol'] ?? '').toString();
+    final nm = (root['name'] ?? '').toString();
 
     return AssetInfo(
       slug: id.toLowerCase(),
       symbol: sym.toUpperCase(),
       name: nm,
-      marketCapUsd: _d(m['marketCapUsd']),
-      volumeUsd24Hr: _d(m['volumeUsd24Hr']),
+      marketCapUsd: _d(root['marketCapUsd']),
+      volumeUsd24Hr: _d(root['volumeUsd24Hr']),
     );
   }
 
-  /// Copy dengan override sebagian field (berguna saat "merge" detail)
   AssetInfo copyWith({
     String? slug,
     String? symbol,

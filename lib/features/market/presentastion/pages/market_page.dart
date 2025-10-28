@@ -29,6 +29,12 @@ class MarketPage extends GetView<MarketController> {
           final symbol = info?.symbol ?? slug.toUpperCase();
           final price = controller.lastPrice.value;
 
+          final pct = controller.change24hPct.value;
+          final up = (pct ?? 0) >= 0;
+          final badgeStr = pct == null
+              ? '—'
+              : '${up ? '+' : ''}${pct.toStringAsFixed(2)}%';
+
           return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             child: Column(
@@ -49,7 +55,6 @@ class MarketPage extends GetView<MarketController> {
                   ],
                 ),
                 const SizedBox(height: 16),
-
                 // ---- Coin + ticker + dropdown aset ----
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -130,10 +135,9 @@ class MarketPage extends GetView<MarketController> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
 
-                // ---- Price + badges ----
+                // ---- Price ----
                 Text(
                   price > 0 ? fmt.format(price) : '--',
                   style: const TextStyle(
@@ -143,16 +147,19 @@ class MarketPage extends GetView<MarketController> {
                   ),
                 ),
                 const SizedBox(height: 10),
+
+                // ---- Badges ----
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    _changeBadge(_mockChangeStr(0.08), '24h', positive: true),
-                    _changeBadge(_mockChangeStr(0.152), '7d', positive: true),
+                    _changeBadge(badgeStr, '24h', positive: up),
+                    _changeBadge(_mockChangeStr(0.05), '7d', positive: true),
                   ],
                 ),
-
                 const SizedBox(height: 16),
+
+                // ---- Description ----
                 Text(
                   '$name is a crypto asset displayed with real-time price and candlestick chart powered by CoinCap.',
                   style: TextStyle(color: _muted, fontSize: 14.5, height: 1.45),
@@ -182,7 +189,6 @@ class MarketPage extends GetView<MarketController> {
                             ),
                           ),
                           const Spacer(),
-                          // Perlebar / Kecilkan
                           Obx(() {
                             final ex = controller.chartExpanded.value;
                             return IconButton(
@@ -194,7 +200,6 @@ class MarketPage extends GetView<MarketController> {
                               onPressed: controller.toggleChartExpanded,
                             );
                           }),
-                          // Fullscreen
                           IconButton(
                             tooltip: 'Fullscreen',
                             icon: const Icon(
@@ -213,11 +218,10 @@ class MarketPage extends GetView<MarketController> {
                         alignment: Alignment.centerRight,
                         child: Wrap(
                           spacing: 8,
-                          children: kTimeframes.entries.map((e) {
-                            final label = e.key; // mis. '5m'
-                            final value = e.value; // mis. 'm5'
+                          children: kIntervals.map((itv) {
+                            final label = itv;
                             final selected =
-                                controller.selectedInterval.value == value;
+                                controller.selectedInterval.value == itv;
                             return ChoiceChip(
                               selected: selected,
                               label: Text(
@@ -230,8 +234,7 @@ class MarketPage extends GetView<MarketController> {
                               pressElevation: 0,
                               selectedColor: const Color(0xFF10B981),
                               backgroundColor: const Color(0xFF0F172A),
-                              onSelected: (_) =>
-                                  controller.changeInterval(value),
+                              onSelected: (_) => controller.changeInterval(itv),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                                 side: BorderSide(
@@ -257,6 +260,7 @@ class MarketPage extends GetView<MarketController> {
                         final h = controller.chartExpanded.value
                             ? 460.0
                             : 240.0;
+                        final data = controller.candles;
                         return Container(
                           height: h,
                           decoration: BoxDecoration(
@@ -268,39 +272,36 @@ class MarketPage extends GetView<MarketController> {
                             ),
                           ),
                           padding: const EdgeInsets.all(8),
-                          child: Obx(() {
-                            final data = controller.candles;
-                            if (data.isEmpty) {
-                              return const Center(
-                                child: Text(
-                                  'No data',
-                                  style: TextStyle(color: Colors.white54),
+                          child: data.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No data',
+                                    style: TextStyle(color: Colors.white54),
+                                  ),
+                                )
+                              : CandlesChart(
+                                  data: data.toList(),
+                                  panelColor: const Color(0xFF0E1627),
+                                  gridColor: const Color(0xFF20304D),
+                                  bullColor: const Color(0xFF10B981),
+                                  bearColor: const Color(0xFFF87171),
                                 ),
-                              );
-                            }
-                            // Candlesticks (zoom/pan aktif di widget)
-                            return CandlesChart(
-                              data: data.toList(),
-                              panelColor: const Color(0xFF0E1627),
-                              gridColor: const Color(0xFF20304D),
-                              bullColor: const Color(0xFF10B981),
-                              bearColor: const Color(0xFFF87171),
-                            );
-                          }),
                         );
                       }),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
-                // ---- Bottom metrics (DINAMIS) ----
                 Obx(() {
                   String _fmtCurrency(double? v) {
                     if (v == null) return '—';
-                    final s = v.abs() >= 1000 ? _fmt(v) : v.toStringAsFixed(2);
-                    return '\$$s';
+                    final abs = v.abs();
+                    if (abs >= 1e12)
+                      return '\$${(v / 1e12).toStringAsFixed(2)}T';
+                    if (abs >= 1e9) return '\$${(v / 1e9).toStringAsFixed(2)}B';
+                    if (abs >= 1e6) return '\$${(v / 1e6).toStringAsFixed(2)}M';
+                    if (abs >= 1e3) return '\$${(v / 1e3).toStringAsFixed(2)}K';
+                    return '\$${v.toStringAsFixed(2)}';
                   }
 
                   return GridView.count(
@@ -340,7 +341,6 @@ class MarketPage extends GetView<MarketController> {
     );
   }
 
-  // ---- Utils / UI helpers ----
   Widget _iconBtn(BuildContext context, IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
@@ -356,12 +356,10 @@ class MarketPage extends GetView<MarketController> {
     );
   }
 
-  String _titleCase(String slug) {
-    if (slug.isEmpty) return slug;
-    return slug[0].toUpperCase() + slug.substring(1);
-  }
+  String _titleCase(String slug) =>
+      slug.isEmpty ? slug : slug[0].toUpperCase() + slug.substring(1);
 
-  // Badge perubahan dummy (bisa diganti perhitungan dari candle 24h)
+  // sementara untuk 7d badge dummy (silakan ganti perhitungan sesungguhnya)
   String _mockChangeStr(double f) {
     final rnd = (math.Random().nextDouble() * f * 100);
     return '+${rnd.toStringAsFixed(2)}%';
@@ -374,7 +372,6 @@ class MarketPage extends GetView<MarketController> {
     final Color fg = positive
         ? const Color(0xFF46D39A)
         : const Color(0xFFF87171);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
@@ -420,7 +417,6 @@ class MarketPage extends GetView<MarketController> {
   }
 }
 
-// ---- Tile metric bawah ----
 class _StatTile extends StatelessWidget {
   final String title;
   final String value;
@@ -458,20 +454,4 @@ class _StatTile extends StatelessWidget {
       ),
     );
   }
-}
-
-// ---- Util format angka ribuan ----
-String _fmt(double v) {
-  final s = v.toStringAsFixed(2);
-  final parts = s.split('.');
-  final ints = parts[0];
-  final buff = StringBuffer();
-  for (int i = 0; i < ints.length; i++) {
-    final idx = ints.length - i - 1;
-    buff.write(ints[idx]);
-    final pos = i + 1;
-    if (pos % 3 == 0 && idx != 0) buff.write(',');
-  }
-  final rev = buff.toString().split('').reversed.join();
-  return '$rev.${parts[1]}';
 }

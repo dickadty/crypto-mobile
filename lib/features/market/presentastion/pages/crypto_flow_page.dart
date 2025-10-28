@@ -1,17 +1,23 @@
-import 'package:crypto_mvp_getx/features/market/presentastion/controllers/market_controller.dart';
-import 'package:crypto_mvp_getx/features/market/presentastion/pages/market_page.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/market_controller.dart';
 
 class CryptoFlowPage extends StatefulWidget {
   const CryptoFlowPage({super.key});
-
   @override
   State<CryptoFlowPage> createState() => _CryptoFlowPageState();
 }
 
 class _CryptoFlowPageState extends State<CryptoFlowPage> {
   String _query = '';
+  Timer? _deb;
+
+  @override
+  void dispose() {
+    _deb?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +25,6 @@ class _CryptoFlowPageState extends State<CryptoFlowPage> {
     final isWide = width >= 900;
     final c = Get.find<MarketController>();
 
-    // filter dinamis (slug/symbol/name)
     final q = _query.toLowerCase();
     final filtered = c.assetInfos.where((a) {
       if (q.isEmpty) return true;
@@ -42,9 +47,10 @@ class _CryptoFlowPageState extends State<CryptoFlowPage> {
               children: [
                 _logo(),
                 const SizedBox(width: 12),
-                const Text('CryptoFlow',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                const Text(
+                  'CryptoFlow',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                ),
                 const Spacer(),
                 _circleIcon(Icons.settings),
                 const SizedBox(width: 10),
@@ -62,41 +68,46 @@ class _CryptoFlowPageState extends State<CryptoFlowPage> {
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // Panels (dummy)
             Flex(
               direction: isWide ? Axis.horizontal : Axis.vertical,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Expanded(
-                    child: _SectionCard(
-                        title: 'TOP GAINERS',
-                        emoji: '🚀',
-                        child: SizedBox(height: 120))),
+                  child: _SectionCard(
+                    title: 'TOP GAINERS',
+                    emoji: '🚀',
+                    child: SizedBox(height: 120),
+                  ),
+                ),
                 SizedBox(width: 20, height: 20),
                 Expanded(
-                    child: _SectionCard(
-                        title: 'TOP LOSERS',
-                        emoji: '📉',
-                        child: SizedBox(height: 120))),
+                  child: _SectionCard(
+                    title: 'TOP LOSERS',
+                    emoji: '📉',
+                    child: SizedBox(height: 120),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 20),
             _SearchField(
               hint: 'Search coins (BTC, ETH, ADA...)',
-              onChanged: (v) => setState(() => _query = v),
+              onChanged: (v) {
+                _deb?.cancel();
+                _deb = Timer(const Duration(milliseconds: 250), () {
+                  if (mounted) setState(() => _query = v);
+                });
+              },
             ),
             const SizedBox(height: 24),
-
             Text(
               'YOUR ASSETS',
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    color: Colors.white70,
-                    letterSpacing: 0.6,
-                  ),
+                color: Colors.white70,
+                letterSpacing: 0.6,
+              ),
             ),
             const SizedBox(height: 12),
-
-            // Item list: setiap tile pakai Obx di dalamnya
             Column(
               children: [
                 for (final a in filtered) ...[
@@ -106,7 +117,10 @@ class _CryptoFlowPageState extends State<CryptoFlowPage> {
                     name: a.name,
                     onTap: () async {
                       await c.changeAsset(a.slug);
-                      Get.to(() => const MarketPage());
+                      // navigate ke halaman detail chart
+                      Get.toNamed(
+                        '/market',
+                      ); // atau Get.to(() => const MarketPage());
                     },
                   ),
                   const SizedBox(height: 12),
@@ -132,11 +146,18 @@ class _CryptoFlowPageState extends State<CryptoFlowPage> {
           end: Alignment.bottomRight,
         ),
         boxShadow: const [
-          BoxShadow(color: Color(0x803B82F6), blurRadius: 12, offset: Offset(0, 6)),
+          BoxShadow(
+            color: Color(0x803B82F6),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
         ],
       ),
-      child: const Icon(Icons.currency_bitcoin_rounded,
-          size: 18, color: Colors.white),
+      child: const Icon(
+        Icons.currency_bitcoin_rounded,
+        size: 18,
+        color: Colors.white,
+      ),
     );
   }
 
@@ -154,14 +175,15 @@ class _CryptoFlowPageState extends State<CryptoFlowPage> {
   }
 }
 
-// =================== widgets kecil ===================
-
 class _SectionCard extends StatelessWidget {
   final String title;
   final String emoji;
   final Widget child;
-  const _SectionCard(
-      {required this.title, required this.emoji, required this.child});
+  const _SectionCard({
+    required this.title,
+    required this.emoji,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -175,15 +197,20 @@ class _SectionCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          border:
-              const Border.fromBorderSide(BorderSide(color: Color(0xFF1A2440))),
+          border: const Border.fromBorderSide(
+            BorderSide(color: Color(0xFF1A2440)),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$emoji  $title',
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    color: Colors.white70, letterSpacing: .6)),
+            Text(
+              '$emoji  $title',
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                color: Colors.white70,
+                letterSpacing: .6,
+              ),
+            ),
             const SizedBox(height: 12),
             child,
           ],
@@ -198,23 +225,26 @@ class _AssetTileLive extends StatelessWidget {
   final String symbol;
   final String name;
   final VoidCallback onTap;
-  const _AssetTileLive(
-      {required this.slug,
-      required this.symbol,
-      required this.name,
-      required this.onTap});
+  const _AssetTileLive({
+    required this.slug,
+    required this.symbol,
+    required this.name,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final c = Get.find<MarketController>();
     return Obx(() {
       final price =
-          c.prices[slug] ?? (c.selected.value == slug ? c.lastPrice.value : 0.0);
-
-      final up = true; // placeholder; bisa dihitung dari candle 24h
-      final pctColor =
-          up ? const Color(0xFF22C55E) : const Color(0xFFF43F5E);
-      final pctPrefix = up ? '+' : '';
+          c.prices[slug] ??
+          (c.selected.value == slug ? c.lastPrice.value : 0.0);
+      final pct = c.selected.value == slug ? c.change24hPct.value : null;
+      final up = (pct ?? 0) >= 0;
+      final pctColor = up ? const Color(0xFF22C55E) : const Color(0xFFF43F5E);
+      final pctStr = pct == null
+          ? '—'
+          : '${up ? '+' : ''}${pct.toStringAsFixed(2)}%';
 
       return InkWell(
         onTap: onTap,
@@ -234,32 +264,51 @@ class _AssetTileLive extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [
-                      Text(symbol,
+                    Row(
+                      children: [
+                        Text(
+                          symbol,
                           style: const TextStyle(
-                              fontWeight: FontWeight.w800, fontSize: 16)),
-                      const SizedBox(width: 6),
-                      Text(name,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          name,
                           style: const TextStyle(
-                              color: Colors.white60, fontSize: 13)),
-                    ]),
+                            color: Colors.white60,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 4),
-                    const Text('Vol: —',
-                        style:
-                            TextStyle(color: Colors.white54, fontSize: 12)),
+                    const Text(
+                      'Vol: —',
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
                   ],
                 ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(price > 0 ? '\$${_fmt(price)}' : '--',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 16)),
+                  Text(
+                    price > 0 ? '\$${_fmt(price)}' : '--',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('$pctPrefix${2.34.toStringAsFixed(2)}%',
-                      style: TextStyle(
-                          color: pctColor, fontWeight: FontWeight.w700)),
+                  Text(
+                    pctStr,
+                    style: TextStyle(
+                      color: pctColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -270,19 +319,17 @@ class _AssetTileLive extends StatelessWidget {
   }
 
   Widget _assetIcon() => Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0A1222),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF1A2440)),
-        ),
-        child:
-            const Icon(Icons.currency_bitcoin_rounded, color: Colors.white70),
-      );
+    width: 40,
+    height: 40,
+    decoration: BoxDecoration(
+      color: const Color(0xFF0A1222),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: const Color(0xFF1A2440)),
+    ),
+    child: const Icon(Icons.currency_bitcoin_rounded, color: Colors.white70),
+  );
 }
 
-// ✅ Tambahan yang hilang: _SearchField
 class _SearchField extends StatelessWidget {
   final String hint;
   final ValueChanged<String>? onChanged;

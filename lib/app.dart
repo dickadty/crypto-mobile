@@ -1,8 +1,8 @@
+import 'package:crypto_mvp_getx/features/market/market_binding.dart';
 import 'package:crypto_mvp_getx/features/market/presentastion/pages/crypto_flow_page.dart';
 import 'package:crypto_mvp_getx/features/market/presentastion/pages/market_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'features/market/market_binding.dart';
 
 class CryptoApp extends StatelessWidget {
   const CryptoApp({super.key});
@@ -26,7 +26,6 @@ class CryptoApp extends StatelessWidget {
         titleMedium: TextStyle(fontWeight: FontWeight.w600),
         bodyMedium: TextStyle(height: 1.3),
       ),
-      // ✅ gunakan CardThemeData (bukan CardTheme)
       cardTheme: CardThemeData(
         color: const Color(0xFF0F172A),
         elevation: 0,
@@ -40,9 +39,15 @@ class CryptoApp extends StatelessWidget {
       title: 'CryptoFlow',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      initialBinding: MarketBinding(), // ← inject controller & datasources
-      home: const CryptoFlowPage(), // ← beranda baru
-      getPages: [GetPage(name: '/market', page: () => const MarketPage())],
+      // Inject controller & datasources
+      initialBinding: MarketBinding(),
+      // Beranda
+      home: const CryptoFlowPage(),
+      // Route map
+      getPages: [
+        GetPage(name: '/', page: () => const CryptoFlowPage()),
+        GetPage(name: '/market', page: () => const MarketPage()),
+      ],
     );
   }
 }
