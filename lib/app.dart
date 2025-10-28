@@ -1,6 +1,7 @@
 import 'package:crypto_mvp_getx/features/market/market_binding.dart';
 import 'package:crypto_mvp_getx/features/market/presentastion/pages/crypto_flow_page.dart';
 import 'package:crypto_mvp_getx/features/market/presentastion/pages/market_page.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -42,7 +43,7 @@ class CryptoApp extends StatelessWidget {
       // Inject controller & datasources
       initialBinding: MarketBinding(),
       // Beranda
-      home: const CryptoFlowPage(),
+      home: const  CryptoFlowPage(),
       // Route map
       getPages: [
         GetPage(name: '/', page: () => const CryptoFlowPage()),

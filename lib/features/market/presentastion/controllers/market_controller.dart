@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:crypto_mvp_getx/core/constants/assets.dart';
+import 'package:get/get.dart';
 import 'package:crypto_mvp_getx/data/models/assets_info.dart';
 import 'package:crypto_mvp_getx/data/models/chandle.dart';
-import 'package:get/get.dart';
 import '../../../../data/datasources/coincap_assets_rest.dart';
 import '../../../../data/datasources/coincap_price_rest.dart';
 import '../../../../data/datasources/coincap_rest.dart';
@@ -13,6 +13,7 @@ class MarketController extends GetxController {
   final CoinCapRestClient _rest;
   final CoinCapPriceRest _priceRest;
   final CoinCapAssetsRest _assetsRest;
+
   MarketController(this._ws, this._rest, this._priceRest, this._assetsRest);
 
   // Data
@@ -21,7 +22,9 @@ class MarketController extends GetxController {
   final selected = RxnString();
 
   // Live prices
-  final prices = <String, double>{}.obs;
+  final prices = <String, double>{}.obs; // Prices per asset
+  final volumes = <String, double>{}.obs; // Volumes per asset
+  final pctChanges = <String, double>{}.obs;
   final lastPrice = 0.0.obs;
 
   // UI
@@ -31,7 +34,7 @@ class MarketController extends GetxController {
   void toggleChartExpanded() => chartExpanded.toggle();
 
   // Chart
-  final selectedInterval = kDefaultInterval.obs; // 'm5'
+  final selectedInterval = 'm5'.obs; // Default interval
   final candles = <Candle>[].obs;
   static const _maxPoints = 300;
 
@@ -51,6 +54,7 @@ class MarketController extends GetxController {
   void onInit() {
     super.onInit();
     _bootstrap();
+    _loadAssets();
   }
 
   @override
@@ -90,11 +94,11 @@ class MarketController extends GetxController {
 
   Future<void> _fallbackIfNoWsPrice() async {
     final slug = selected.value;
-    if (slug == null || lastPrice.value > 0) return;
+    if (slug == null || prices[slug] != null) return;
     final sym = infoBySlug(slug)?.symbol;
     if (sym == null) return;
     final p = await _priceRest.priceBySymbol(sym);
-    if (p != null) lastPrice.value = p;
+    if (p != null) prices[slug] = p;
   }
 
   String _key(String slug, String interval) => '$slug::$interval';
@@ -129,14 +133,6 @@ class MarketController extends GetxController {
       final detail = await _assetsRest.fetchAssetDetail(slug);
       marketCap.value = detail.marketCapUsd;
       volume24h.value = detail.volumeUsd24Hr;
-
-      final idx = assetInfos.indexWhere((e) => e.slug == slug);
-      if (idx >= 0) {
-        assetInfos[idx] = assetInfos[idx].copyWith(
-          marketCapUsd: detail.marketCapUsd,
-          volumeUsd24Hr: detail.volumeUsd24Hr,
-        );
-      }
 
       // 2) candles 24h untuk high/low dan %change
       final now = DateTime.now().toUtc();
@@ -176,6 +172,12 @@ class MarketController extends GetxController {
           change24hPct.value = null;
         }
       }
+
+      // Sync the data to volumes and pctChanges maps
+      volumes[slug] = detail.volumeUsd24Hr ?? 0.0;
+      pctChanges[slug] = change24hPct.value ?? 0.0;
+      volumes.refresh();
+      pctChanges.refresh();
     } catch (_) {
       high24h.value = null;
       low24h.value = null;
@@ -194,7 +196,7 @@ class MarketController extends GetxController {
         final sel = selected.value;
         if (sel != null) {
           final p = map[sel];
-          if (p != null) lastPrice.value = p;
+          if (p != null) prices[sel] = p;
         }
       },
       onError: (e) => error.value = 'WS error: $e',
@@ -217,12 +219,8 @@ class MarketController extends GetxController {
   }
 
   Future<void> changeInterval(String? interval) async {
-    // null artinya user memilih "--" (auto/none); jangan ubah interval
     if (interval == null) return;
-
-    // validasi hanya interval yang diizinkan
     if (!kIntervals.contains(interval)) return;
-
     if (interval == selectedInterval.value) return;
     selectedInterval.value = interval;
 
@@ -230,39 +228,17 @@ class MarketController extends GetxController {
     if (slug != null) await _loadHistory(assetSlug: slug);
   }
 
-  // =========================
-  // NEW: Deep history (paged)
-  // =========================
-
-  String _intervalForLookbackDays(int d) {
-    if (d <= 2) return 'm5';
-    if (d <= 14) return 'm15';
-    if (d <= 60) return 'h1';
-    if (d <= 180) return 'h6';
-    if (d <= 365) return 'h12';
-    return 'd1';
-  }
-
-  /// Panggil ini untuk 3M/6M/1Y/MAX
-  Future<void> loadDeepHistory({
-    required String slug,
-    int lookbackDays = 365,
-    String? forcedInterval,
-  }) async {
-    error.value = null;
-    candles.clear();
+  Future<void> _loadAssets() async {
     try {
-      final interval = forcedInterval ?? _intervalForLookbackDays(lookbackDays);
-      selectedInterval.value = interval; // sinkron dengan UI
-      final hist = await _rest.fetchCandlesLookbackPaged(
-        slug: slug,
-        interval: interval,
-        lookbackDays: lookbackDays,
-        maxPointsPerCall: 900,
-      );
-      candles.assignAll(hist); // tampilkan semua; atau .take(_maxPoints)
+      isLoading.value = true;
+      // Mengambil data dari API atau sumber data lainnya
+      final list = await _assetsRest.fetchAssets(limit: 200);
+      assetInfos.assignAll(list); // Update data yang di-observe
     } catch (e) {
-      error.value = 'Gagal load deep candles: $e';
+      // Menangani error jika terjadi masalah
+      print("Gagal memuat data: $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 }

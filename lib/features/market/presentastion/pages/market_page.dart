@@ -1,5 +1,8 @@
 import 'dart:math' as math;
+import 'package:crypto_mvp_getx/features/market/presentastion/widgets/badge_widget.dart';
 import 'package:crypto_mvp_getx/features/market/presentastion/widgets/chandles_chart.dart';
+import 'package:crypto_mvp_getx/features/market/presentastion/widgets/icon_button.dart';
+import 'package:crypto_mvp_getx/features/market/presentastion/widgets/stat_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -43,15 +46,15 @@ class MarketPage extends GetView<MarketController> {
                 // ---- Header ----
                 Row(
                   children: [
-                    _iconBtn(
+                    iconBtn(
                       context,
                       Icons.arrow_back,
                       () => Navigator.maybePop(context),
                     ),
                     const Spacer(),
-                    _iconBtn(context, Icons.star_border, () {}),
+                    iconBtn(context, Icons.star_border, () {}),
                     const SizedBox(width: 8),
-                    _iconBtn(context, Icons.ios_share, () {}),
+                    iconBtn(context, Icons.ios_share, () {}),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -80,7 +83,7 @@ class MarketPage extends GetView<MarketController> {
                           name,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 28,
+                            fontSize: 20,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -97,52 +100,15 @@ class MarketPage extends GetView<MarketController> {
                       ],
                     ),
                     const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: _panel,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF1E293B),
-                          width: 1,
-                        ),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          dropdownColor: _panel,
-                          value: controller.selected.value,
-                          items: controller.assetInfos
-                              .map(
-                                (a) => DropdownMenuItem(
-                                  value: a.slug,
-                                  child: Text(
-                                    a.name,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            if (val != null) controller.changeAsset(val);
-                          },
-                          icon: const Icon(
-                            Icons.expand_more,
-                            color: Colors.white70,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
-
                 // ---- Price ----
                 Text(
                   price > 0 ? fmt.format(price) : '--',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 44,
+                    fontSize: 32,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -153,8 +119,8 @@ class MarketPage extends GetView<MarketController> {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    _changeBadge(badgeStr, '24h', positive: up),
-                    _changeBadge(_mockChangeStr(0.05), '7d', positive: true),
+                    changeBadge(badgeStr, '24h', positive: up),
+                    changeBadge(_mockChangeStr(0.05), '7d', positive: true),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -166,7 +132,6 @@ class MarketPage extends GetView<MarketController> {
                 ),
 
                 const SizedBox(height: 20),
-
                 // ---- Price Chart card ----
                 Row(
                   children: [
@@ -197,7 +162,9 @@ class MarketPage extends GetView<MarketController> {
                                   return IconButton(
                                     tooltip: ex ? 'Kecilkan' : 'Perlebar',
                                     icon: Icon(
-                                      ex ? Icons.unfold_less : Icons.unfold_more,
+                                      ex
+                                          ? Icons.unfold_less
+                                          : Icons.unfold_more,
                                       color: Colors.white70,
                                     ),
                                     onPressed: controller.toggleChartExpanded,
@@ -215,50 +182,6 @@ class MarketPage extends GetView<MarketController> {
                               ],
                             ),
                             const SizedBox(height: 6),
-
-                            // Timeframe chips
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Wrap(
-                                spacing: 8,
-                                children: kIntervals.map((itv) {
-                                  final label = itv;
-                                  final selected =
-                                      controller.selectedInterval.value == itv;
-                                  return ChoiceChip(
-                                    selected: selected,
-                                    label: Text(
-                                      label,
-                                      style: TextStyle(
-                                        color: selected ? Colors.white : _muted,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    pressElevation: 0,
-                                    selectedColor: const Color(0xFF10B981),
-                                    backgroundColor: const Color(0xFF0F172A),
-                                    onSelected: (_) =>
-                                        controller.changeInterval(itv),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      side: BorderSide(
-                                        color: selected
-                                            ? const Color(0xFF10B981)
-                                            : const Color(0xFF1F2A44),
-                                      ),
-                                    ),
-                                    materialTapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    labelPadding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 1,
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-
                             // Chart container (tinggi dinamis)
                             Obx(() {
                               final h = controller.chartExpanded.value
@@ -280,7 +203,9 @@ class MarketPage extends GetView<MarketController> {
                                     ? const Center(
                                         child: Text(
                                           'No data',
-                                          style: TextStyle(color: Colors.white54),
+                                          style: TextStyle(
+                                            color: Colors.white54,
+                                          ),
                                         ),
                                       )
                                     : CandlesChart(
@@ -292,15 +217,44 @@ class MarketPage extends GetView<MarketController> {
                                       ),
                               );
                             }),
+                            // Timeframe dropdown
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: DropdownButton<String>(
+                                value: controller.selectedInterval.value,
+                                items: kIntervals.map((itv) {
+                                  return DropdownMenuItem<String>(
+                                    value: itv,
+                                    child: Text(
+                                      itv,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    controller.changeInterval(val);
+                                  }
+                                },
+                                dropdownColor: _panel,
+                                icon: const Icon(
+                                  Icons.expand_more,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 18),
 
-                // ---- Bottom metrics (DINAMIS) ----
                 Obx(() {
                   String _fmtCurrency(double? v) {
                     if (v == null) return '—';
@@ -315,27 +269,25 @@ class MarketPage extends GetView<MarketController> {
 
                   return GridView.count(
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: MediaQuery.of(context).size.width > 680
-                        ? 4
-                        : 2,
                     shrinkWrap: true,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
                     childAspectRatio: 3.3,
+                    crossAxisCount: 2, // 2 columns for smaller screens
                     children: [
-                      _StatTile(
+                      StatTile(
                         title: 'High 24h',
                         value: _fmtCurrency(controller.high24h.value),
                       ),
-                      _StatTile(
+                      StatTile(
                         title: 'Low 24h',
                         value: _fmtCurrency(controller.low24h.value),
                       ),
-                      _StatTile(
+                      StatTile(
                         title: 'Market Cap',
                         value: _fmtCurrency(controller.marketCap.value),
                       ),
-                      _StatTile(
+                      StatTile(
                         title: '24h Volume',
                         value: _fmtCurrency(controller.volume24h.value),
                       ),
@@ -350,116 +302,11 @@ class MarketPage extends GetView<MarketController> {
     );
   }
 
-  Widget _iconBtn(BuildContext context, IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: _panel,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: Colors.white70, size: 20),
-      ),
-    );
-  }
-
   String _titleCase(String slug) =>
       slug.isEmpty ? slug : slug[0].toUpperCase() + slug.substring(1);
 
   String _mockChangeStr(double f) {
     final rnd = (math.Random().nextDouble() * f * 100);
     return '+${rnd.toStringAsFixed(2)}%';
-  }
-
-  Widget _changeBadge(String change, String window, {bool positive = true}) {
-    final Color bg = positive
-        ? const Color(0xFF08381F)
-        : const Color(0xFF3A1010);
-    final Color fg = positive
-        ? const Color(0xFF46D39A)
-        : const Color(0xFFF87171);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: fg.withOpacity(.35), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            positive ? Icons.arrow_outward : Icons.south_east,
-            size: 16,
-            color: fg,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$change  ',
-            style: TextStyle(
-              color: fg,
-              fontSize: 13.5,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-            decoration: BoxDecoration(
-              color: fg.withOpacity(.12),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              window,
-              style: TextStyle(
-                color: fg,
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatTile extends StatelessWidget {
-  final String title;
-  final String value;
-  const _StatTile({required this.title, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF121A2B),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Color(0xFF9AA4B2),
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
