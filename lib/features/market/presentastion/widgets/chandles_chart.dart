@@ -25,7 +25,7 @@ class CandlesChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmtTime = DateFormat('ha');    // "2PM"
+    final fmtTime = DateFormat('ha'); // "2PM"
     final fmtDate = DateFormat('MMM d'); // "Oct 27"
 
     return SfCartesianChart(
@@ -38,7 +38,10 @@ class CandlesChart extends StatelessWidget {
         intervalType: DateTimeIntervalType.auto,
         axisLabelFormatter: (AxisLabelRenderDetails args) {
           final millis = args.value.toInt();
-          final dt = DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true).toLocal();
+          final dt = DateTime.fromMillisecondsSinceEpoch(
+            millis,
+            isUtc: true,
+          ).toLocal();
 
           // "2PM" -> "2pm"
           final timeStr = fmtTime.format(dt).toLowerCase();
@@ -55,8 +58,12 @@ class CandlesChart extends StatelessWidget {
         },
       ),
       primaryYAxis: NumericAxis(
+        opposedPosition: true, // Move Y-Axis to the right
         axisLine: const AxisLine(color: Color(0xFF1E293B), width: 1),
-        majorGridLines: MajorGridLines(color: gridColor.withOpacity(.35), width: 1),
+        majorGridLines: MajorGridLines(
+          color: gridColor.withOpacity(.35),
+          width: 1,
+        ),
         labelStyle: const TextStyle(color: Colors.white70, fontSize: 11),
       ),
       series: <CandleSeries<Candle, DateTime>>[
