@@ -62,5 +62,16 @@ lib/
 │ ├── candles_chart.dart
 │ └── stat_tile.dart
 │
-└── main.dart # Entry point & GetMaterialApp
+└── main.dart 
+
+# Entry point & GetMaterialApp
+
+---
+
+## ⚙️ Cara Menjalankan Proyek
+
+### 1️⃣ Clone Repositori
+```bash
+git clone [Link Repositori Anda]
+
 
