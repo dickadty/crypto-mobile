@@ -64,9 +64,6 @@ lib/
 │
 └── main.dart 
 
-# Entry point & GetMaterialApp
-
----
 
 ## ⚙️ Cara Menjalankan Proyek
 
@@ -74,4 +71,26 @@ lib/
 ```bash
 git clone [Link Repositori Anda]
 
+cd crypto_mvp_getx
 
+flutter pub get
+
+flutter run
+
+
+🔗 API Source
+
+Data diambil dari CoinCap API
+
+REST Endpoint: https://api.coincap.io/v2/assets
+
+WebSocket Stream: wss://ws.coincap.io/prices?assets=bitcoin,ethereum,...
+
+🧠 Teknologi yang Digunakan
+Kategori	Teknologi
+Framework	Flutter 3.x
+State Management	GetX
+Data Source	CoinCap API
+UI Library	Flutter Material Widgets
+Chart Library	candlesticks / syncfusion_flutter_charts
+Language	Dart
