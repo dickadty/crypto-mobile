@@ -1,51 +1,66 @@
-CRYPTOFLOW - REAL-TIME CRYPTO ASSET TRACKER
-Proyek Ujian Tengah Semester (UTS) Mobile Programming
+# 💹 CRYPTOFLOW - Real-Time Crypto Asset Tracker
 
-Aplikasi Flutter yang dibangun menggunakan GetX untuk memonitor harga, volume, dan grafik aset kripto secara real-time menggunakan data dari CoinCap API.
+📱 **Proyek Ujian Tengah Semester (UTS) - Mobile Programming**
 
-Fitur Utama
-Real-time Price Update: Menggunakan WebSocket CoinCap untuk pembaruan harga live.
+CryptoFlow adalah aplikasi **Flutter** yang dibangun menggunakan **GetX Architecture Pattern (MVC + Reactive State Management)** untuk memantau harga aset kripto secara **real-time** menggunakan **CoinCap API** (REST & WebSocket).
 
-Tampilan Detail Aset: Menyajikan harga, volume 24 jam, Market Cap, High/Low, dan Persentase Perubahan 24 jam.
+---
 
-Grafik Candlestick Interaktif: Menampilkan data historis yang dapat di-zoom, di-pan, dan diubah intervalnya (m5, h1, d1, dll.).
+## 🚀 Fitur Utama
 
-Dark Mode Interface: Desain clean dan modern dengan skema warna gelap yang konsisten.
+### 🔄 Real-time Price Update
+- Mendapatkan pembaruan harga **secara live** melalui **WebSocket CoinCap**.
+- Menampilkan perubahan harga, volume, dan persentase secara dinamis.
 
-Pencarian Aset: Filter aset kripto berdasarkan nama, simbol, atau slug dengan debounce yang efisien.
+### 📊 Tampilan Detail Aset
+- Menyajikan informasi lengkap:
+  - Harga terkini
+  - Volume 24 jam
+  - Market Cap
+  - High / Low
+  - Persentase perubahan (24 jam)
 
-Struktur Proyek (MVC + GetX)
+### 🕯️ Grafik Candlestick Interaktif
+- Menampilkan grafik historis harga dalam berbagai interval (m5, h1, d1, dll).
+- Mendukung fitur **zoom**, **pan**, dan **tooltip interaktif**.
+
+### 🌙 Dark Mode Interface
+- Desain **modern dan elegan** dengan skema warna **dark mode** yang konsisten.
+- Mendukung tampilan **responsif** di berbagai ukuran layar.
+
+### 🔍 Pencarian Aset
+- Fitur pencarian dengan **debounce** untuk performa cepat dan efisien.
+- Filter berdasarkan **nama**, **simbol**, atau **slug** aset kripto.
+
+---
+
+## 🧩 Struktur Proyek (MVC + GetX)
+
 lib/
 ├── core/
-│   └── constants/ (Definisi interval waktu, assets, dll.)
+│ └── constants/
+│ └── app_constants.dart # Interval waktu, assets, warna, dll.
+│
 ├── data/
-│   ├── datasources/ (CoinCapService - REST & WebSocket API clients)
-│   └── models/ (AssetInfo, Candle model, dll.)
+│ ├── datasources/
+│ │ └── coincap_service.dart # REST & WebSocket API client
+│ └── models/
+│ ├── asset_info.dart
+│ └── candle_model.dart
+│
 ├── features/
-│   └── market/
-│       ├── controllers/ (MarketController - Logic & State Management)
-│       └── presentastion/
-│           ├── pages/ (CryptoFlowPage, MarketPage, FullscreenChartPage)
-│           └── widgets/ (AssetTile, CandlesChart, StatTile, dll.)
-└── main.dart (Entry point & GetMaterialApp)
-Cara Menjalankan Proyek
-Clone Repositori:
+│ └── market/
+│ ├── controllers/
+│ │ └── market_controller.dart # Logic & State Management (GetX)
+│ └── presentation/
+│ ├── pages/
+│ │ ├── crypto_flow_page.dart
+│ │ ├── market_page.dart
+│ │ └── fullscreen_chart_page.dart
+│ └── widgets/
+│ ├── asset_tile.dart
+│ ├── candles_chart.dart
+│ └── stat_tile.dart
+│
+└── main.dart # Entry point & GetMaterialApp
 
-Bash
-
-git clone [Link Repositori Anda]
-Masuk ke Direktori:
-
-Bash
-
-cd crypto_mvp_getx
-Install Dependencies:
-
-Bash
-
-flutter pub get
-Jalankan Aplikasi:
-
-Bash
-
-flutter run
